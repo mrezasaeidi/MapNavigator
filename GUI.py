@@ -1,5 +1,7 @@
 import os
 
+os.environ["KIVY_NO_CONSOLELOG"] = "1"
+
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
@@ -42,7 +44,6 @@ class NavigatorApplication(App):
         self.execute_all_button = None
         self.result_summary = None
         self.image_box = None
-        self.reset_button = None
 
     def build(self):
         Window.fullscreen = 'auto'
@@ -62,8 +63,8 @@ class NavigatorApplication(App):
         summary = self._build_summary()
         layout.add_widget(summary)
 
-        reset = self._build_reset()
-        layout.add_widget(reset)
+        bottom_bar = self._build_bottom_bar()
+        layout.add_widget(bottom_bar)
 
         return layout
 
@@ -142,10 +143,17 @@ class NavigatorApplication(App):
         scroll_view.add_widget(self.result_summary)
         return scroll_view
 
-    def _build_reset(self):
-        self.reset_button = Button(text='Reset', size_hint=(1, 0.05), background_color=(1, 0, 0, 1))
-        self.reset_button.bind(on_press=lambda button, *_: self._on_reset())
-        return self.reset_button
+    def _build_bottom_bar(self):
+        box_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.05))
+        reset_button = Button(text='Reset', size_hint=(0.5, 1), background_color=(0, 0, 1, 1))
+        reset_button.bind(on_press=lambda button, *_: self._on_reset())
+        box_layout.add_widget(reset_button)
+
+        exit_button = Button(text='Exit', size_hint=(0.5, 1), background_color=(1, 0, 0, 1))
+        exit_button.bind(on_press=lambda button, *_: self._on_exit())
+        box_layout.add_widget(exit_button)
+
+        return box_layout
 
     def _on_map_selected(self, map_path):
         self.map_button.text = self._get_file_name(map_path)
@@ -198,11 +206,14 @@ class NavigatorApplication(App):
 
         self._clear_output_directory(OUTPUT_PATH)
 
+    def _on_exit(self):
+        exit()
+
     def _bind_table(self, queries):
         for i, query in enumerate(queries):
             self.queries_table.add_widget(Label(text=f'{i + 1}'))
-            self.queries_table.add_widget(Label(text=f'({query.src_x},{query.src_y})'))
-            self.queries_table.add_widget(Label(text=f'({query.dst_x},{query.dst_y})'))
+            self.queries_table.add_widget(Label(text=f'({query.src_x} , {query.src_y})'))
+            self.queries_table.add_widget(Label(text=f'({query.dst_x} , {query.dst_y})'))
             self.queries_table.add_widget(Label(text=f'{query.r}'))
             row_button = Button(text='Navigate', size_hint=(None, None), size=(100, 40), background_color=(0, 1, 0, 1))
             row_button.query = query
