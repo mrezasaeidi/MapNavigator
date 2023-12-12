@@ -12,7 +12,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
 from tqdm import tqdm
 
-from src.Entities import Query, Navigator, Result
+from Entities import Query, Navigator, Result
 
 INPUT_ROOT = './input'
 OUTPUT_PATH = './output'

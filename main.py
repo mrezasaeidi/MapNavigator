@@ -1,4 +1,4 @@
-from src.GUI import NavigatorApplication
+from GUI import NavigatorApplication
 
 
 def main():
