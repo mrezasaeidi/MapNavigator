@@ -214,10 +214,13 @@ class Result:
             ax.plot([self.nodes[-2].x, self.nodes[-1].x], [self.nodes[-2].y, self.nodes[-1].y], color='red',
                     linestyle='--')
             road_length = len(self.nodes)
+            path_segment = []
             for i in range(1, road_length - 2):
                 point1 = self.nodes[i]
                 point2 = self.nodes[i + 1]
-                ax.plot([point1.x, point2.x], [point1.y, point2.y], color='green', linestyle='-')
+                path_segment.append(((point1.x, point1.y), (point2.x, point2.y)))
+            plc = LineCollection(path_segment, colors='green', linestyles='-')
+            ax.add_collection(plc)
 
         ax.set_xlabel('X-axis')
         ax.set_ylabel('Y-axis')
