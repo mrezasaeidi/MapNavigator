@@ -15,6 +15,28 @@ def run_gui():
     navigator.run()
 
 
+def run_in_console():
+    map_path = './input/Map200k.txt'
+    query_path = './input/Query_200k_1000.txt'
+    output_path = './output'
+    need_generate_map = False
+    plot_all_nodes = True
+
+    results = []
+    navigator = Navigator(map_path)
+    queries = Query.read_queries(query_path)
+
+    for i, query in enumerate(queries):
+        result = navigator.navigate(query)
+        if need_generate_map:
+            result.generate_map(output_path, plot_all_nodes)
+        results.append(result)
+        print(result)
+        print('\n========================================================================================\n')
+
+    return results
+
+
 def calculate_avg():
     map_path = './input/Map200k.txt'
     query_path = './input/Query_200k_1000.txt'
@@ -37,28 +59,6 @@ def calculate_avg():
     avg = total_time / total_count
     print(f'Average execution time for {count} samples is: {avg} s')
     return avg
-
-
-def run_in_console():
-    map_path = './input/Map200k.txt'
-    query_path = './input/Query_200k_1000.txt'
-    output_path = './output'
-    need_generate_map = False
-    plot_all_nodes = True
-
-    results = []
-    navigator = Navigator(map_path)
-    queries = Query.read_queries(query_path)
-
-    for i, query in enumerate(queries):
-        result = navigator.navigate(query)
-        if need_generate_map:
-            result.generate_map(output_path, plot_all_nodes)
-        results.append(result)
-        print(result)
-        print('\n========================================================================================\n')
-
-    return results
 
 
 if __name__ == '__main__':
