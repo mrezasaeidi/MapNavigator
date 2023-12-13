@@ -45,19 +45,20 @@ def calculate_avg():
     navigator = Navigator(map_path)
     queries = Query.read_queries(query_path)
 
-    total_count = 0
+    success_count = 0
     total_time = 0
     for i, query in enumerate(queries):
-        print(f'Query: {i}\tCount: {total_count}')
-        if total_count == count:
-            break
-        result = navigator.navigate(query)
+        result = navigator.evaluate(query, True, False)
         if result.reason == Result.REASON_SUCCESS:
-            total_count += 1
             total_time += result.exec_time
+            success_count += 1
+            print(f'Query: {i}\tSuccess Count: {success_count}\tAverage: {total_time / success_count} s')
 
-    avg = total_time / total_count
-    print(f'Average execution time for {count} samples is: {avg} s')
+        if success_count == count:
+            break
+
+    avg = total_time / success_count
+    print(f'Average execution time for {success_count} tries is: {avg} s')
     return avg
 
 

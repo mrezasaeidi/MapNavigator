@@ -5,6 +5,7 @@ import time
 from FibHeap import FibonacciHeap
 import matplotlib.pyplot as plt
 from datetime import datetime
+from PriorityQueue import PriorityQueue
 
 WALK_SPEED = 5.0
 
@@ -324,6 +325,89 @@ class Navigator:
                     distance[neighbor] = alt_distance
                     previous[neighbor] = current_node
                     fib_heap.decrease_key(neighbor.fib_node, alt_distance)
+
+        return [], None
+
+    def evaluate(self, query: Query, use_fake_nodes: bool, use_fib: bool):
+        graph = Graph(self.map_file_path)
+        start_tic = time.time()
+        src_candidates, dst_candidates = self._find_candidate_intersections(graph, query)
+        if not src_candidates or not dst_candidates:
+            if not src_candidates and not dst_candidates:
+                reason = Result.REASON_START_END_NODES_NOT_FOUND
+            elif not src_candidates:
+                reason = Result.REASON_START_NODE_NOT_FOUND
+            else:
+                reason = Result.REASON_END_NODE_NOT_FOUND
+
+            result = Result(graph, query, [], 0, reason)
+            end_tick = time.time()
+            result.set_exec_time(end_tick - start_tic)
+            return result
+
+        if use_fake_nodes:
+            src = self._add_node(graph, 'S', query.src_x, query.src_y, src_candidates)
+            dst = self._add_node(graph, 'E', query.dst_x, query.dst_y, dst_candidates)
+            if use_fib:
+                path, total_time = self._dijkstra(graph, src, dst)
+            else:
+                path, total_time = self._naive_dijkstra(graph, src, dst)
+            reason = Result.REASON_SUCCESS if path else Result.REASON_NO_PATH
+            result = Result(graph, query, path, total_time, reason)
+            end_tic = time.time()
+            result.set_exec_time(end_tic - start_tic)
+            return result
+
+        best_result = Result(graph, query, [], math.inf, Result.REASON_NO_PATH)
+        for src in src_candidates:
+            for dst in dst_candidates:
+                if use_fib:
+                    path, total_time = self._dijkstra(graph, src, dst)
+                else:
+                    path, total_time = self._naive_dijkstra(graph, src, dst)
+
+                if path:
+                    total_time += euclidean_distance(query.src_x, query.src_y, src.x, src.y) / WALK_SPEED
+                    total_time += euclidean_distance(query.dst_x, query.dst_y, dst.x, dst.y) / WALK_SPEED
+
+                    if total_time < best_result.duration:
+                        best_result = Result(graph, query, path, total_time, Result.REASON_SUCCESS)
+
+        end_tic = time.time()
+        best_result.set_exec_time(end_tic - start_tic)
+
+        return best_result
+
+    def _naive_dijkstra(self, graph: Graph, start_node: Node, end_node: Node):
+        distance = {node: float('inf') for node in graph.nodes}
+        distance[start_node] = 0
+        previous = {node: None for node in graph.nodes}
+        pq = PriorityQueue()
+        for node in graph.nodes:
+            if node == start_node:
+                pq.insert(0, node)
+            else:
+                pq.insert(math.inf, node)
+
+        while not pq.is_empty():
+            d, current_node = pq.extract_min()
+
+            if current_node == end_node:
+                path = []
+                while previous[current_node]:
+                    path.append(current_node)
+                    current_node = previous[current_node]
+                if len(path) != 0:
+                    path.append(start_node)
+                return list(reversed(path)), distance[end_node]
+
+            for i, road in enumerate(current_node.roads):
+                neighbor = road.node1 if road.node2 == current_node else road.node2
+                alt_distance = distance[current_node] + road.weight
+                if alt_distance < distance[neighbor]:
+                    distance[neighbor] = alt_distance
+                    previous[neighbor] = current_node
+                    pq.decrease_key(alt_distance, neighbor)
 
         return [], None
 
